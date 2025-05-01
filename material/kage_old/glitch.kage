@@ -1,0 +1,84 @@
+//kage:unit pixels
+package main
+
+
+var Seed float
+var ShiftMax float
+var High int
+
+// var LightColor vec4
+
+func Fragment(_ vec4, texCoord vec2, _ vec4) vec4 {
+    var shiftX float
+    var keepY int
+    var seedY float
+    var sft vec2
+   
+    keepY = int(texCoord.y)/High
+    rimg:= imageSrc1At(vec2(texCoord.x,float(keepY)))
+    seedY = float(keepY)*(200*Seed)+(rimg.r+rimg.g+rimg.b)*200
+    keepY=int(texCoord.y)/int(abs(gliRand(seedY,float(High))))
+  
+    // rimg:= imageSrc1At(vec2(texCoord.x,float(keepY)))
+    seedY = float(keepY)*(100*Seed)+(rimg.r+rimg.g+rimg.b)*100
+//    shiftX = texCoord.x+(ShiftMax*sin(float(seedY)*cos(float(seedY*seedY))))
+    // shiftX = texCoord.x+kameRandv2((Seed+123123)*float(seedY)*1000,ShiftMax*2)-ShiftMax
+    shiftX = texCoord.x+gliRand(seedY,ShiftMax)
+    // texCoord.x=shiftX
+    sft=vec2(shiftX,texCoord.y)
+	color := imageSrc0At(sft)
+//     pl:=texCoord
+//     defa:=color.a
+//    f:=100.0
+//    pl2:=mod(pl,f)
+//     if defa>0{
+//         rd:=kameRand(Seed*(pl2.x*pl2.y)+1,100)/100//
+//         color.rgb=vec3(rd,rd,rd)
+//     }
+//     color.a = defa
+
+
+    return color//mix(DarkColor, LightColor, light)
+}
+
+func gliRand(seed float,mx float)float{
+   // rimg:= imageSrc1At(texCoord+seed)
+   // seed=seed//+(rimg.r+rimg.g+rimg.b)*10
+    return mx*sin(float(seed)*cos(float(seed*seed)))
+}
+
+func kameRandv2(seed float,mx float)float{
+    if mx<=0{
+        return 0
+    }
+    seed=mod(seed,1500500)
+    // seed=mod(seed,1500500)
+    x100:=seed//100*seed-15
+    ssin:=sin(x100*x100)
+    mmod:=mod((x100-0.1)*(x100-0.1),10)
+   // mx:=100.0
+   // fseed:=float(seed)
+   inn:=(ssin*ssin*mmod/10)-0.5
+    return 2*mx*abs(inn)
+}
+
+func kameRand(seed float,mx float)float{
+    if mx<=0{
+        return 0
+    }
+    n:=100.0
+   // mx:=100.0
+   // fseed:=float(seed)
+
+    return float(randmode(seed*seed*n,mx)+randmode(float(n+n/2)*pow(seed, sin(2.0*seed-5)),mx))
+}
+
+func setGlichY(y float){
+
+}
+
+
+
+func randmode(nx float,m float)float{
+    return mod(10000000*nx,m/2)
+}

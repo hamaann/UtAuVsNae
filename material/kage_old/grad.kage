@@ -1,0 +1,45 @@
+//kage:unit pixels
+package main
+
+var Width float
+
+func Fragment(_ vec4, texCoord vec2, _ vec4) vec4 {
+    midd:=imageSrc0UnsafeAt(texCoord)
+     ov:=0.0
+     const wd = 1000.0
+    for j := -wd; j <= wd; j += 1 {
+        if j <= -Width{
+            j=-Width
+        }
+
+        if j >= Width{
+            break
+        }
+		for i := -wd; i <= wd; i += 1 {
+            if i <= -Width{
+                i=-Width
+            }
+
+            if i >= Width{
+                break
+            }    
+
+            ov+=1
+            sfx,sfy:=texCoord.x+i,texCoord.y+j
+            now:=imageSrc0At(vec2(sfx,sfy))
+            // now.a=1/(ov)
+            nowA:=1/ov
+            midd.rgb=alphaBlend(midd.rgb,now.rgb,nowA)
+            midd.a=min(midd.a+(now.a*nowA), 1)
+            // midd=midd*now
+        }
+    }
+   
+
+    return midd
+}
+
+func alphaBlend(bace vec3,oncol vec3,alp float)vec3{
+    colo:=bace.rgb+(oncol.rgb-bace.rgb)*(alp)
+    return colo
+}

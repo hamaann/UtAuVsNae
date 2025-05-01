@@ -1,0 +1,50 @@
+//kage:unit pixels
+package main
+
+var Distance float
+var Pattern int
+
+func Fragment(_ vec4, texCoord vec2, _ vec4) vec4 {
+   texCoord2:=vec2(texCoord.x+Distance,texCoord.y)
+   texCoord0:=vec2(texCoord.x-Distance,texCoord.y)
+   if Pattern==012{
+        return LeaveCMYandMultiply(texCoord0,texCoord,texCoord2)
+   }
+
+    if Pattern==021{
+        return LeaveCMYandMultiply(texCoord0,texCoord2,texCoord)
+   }
+
+     if Pattern==102{
+        return LeaveCMYandMultiply(texCoord,texCoord0,texCoord2)
+   }
+
+    if Pattern==120{
+        return LeaveCMYandMultiply(texCoord,texCoord2,texCoord0)
+   }
+
+     if Pattern==201{
+        return LeaveCMYandMultiply(texCoord2,texCoord0,texCoord)
+   }
+
+    if Pattern==210{
+        return LeaveCMYandMultiply(texCoord2,texCoord,texCoord0)
+   }
+
+    return LeaveCMYandMultiply(texCoord0,texCoord,texCoord2)//color//mix(DarkColor, LightColor, light)
+}
+
+func LeaveCMYandMultiply(posC vec2,posM vec2,posY vec2)vec4{
+    cyaan:=Leave(imageSrc0At(posC),vec3(0,1,1))
+    magenta:=Leave(imageSrc0At(posM),vec3(1,0,1))
+    yellow:=Leave(imageSrc0At(posY),vec3(1,1,0))
+    return cyaan*magenta*yellow
+}
+
+
+func Leave(color vec4,LeaveColor vec3)(newcolor vec4){
+   color.r = min(color.r + LeaveColor.r,1)
+   color.g = min(color.g + LeaveColor.g,1)
+   color.b = min(color.b + LeaveColor.b,1)
+   return color
+}

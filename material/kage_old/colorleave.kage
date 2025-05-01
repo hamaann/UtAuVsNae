@@ -1,0 +1,52 @@
+package main
+
+
+var LeaveColor  vec4
+// var LightColor vec4
+
+func Fragment(_ vec4, texCoord vec2, _ vec4) vec4 {
+	color := imageSrc0UnsafeAt(texCoord)
+screenColor:= imageSrc1UnsafeAt(texCoord)
+   color=Leave(color)
+	//light := lightness(color) // you can also use luminance() directly
+   news := Jousann(color,screenColor)
+//   news=(LeaveColor*news)+news
+// news.r-=(20/255)*LeaveColor.r
+// news.g-=(20/255)*LeaveColor.g
+// news.b-=(20/255)*LeaveColor.b
+
+
+
+return (news)//mix(DarkColor, LightColor, light)
+}
+
+func Leave(color vec4)(newcolor vec4){
+   color.r = color.r + LeaveColor.r
+   color.g = color.g + LeaveColor.g
+   color.b = color.b + LeaveColor.b
+     color.a = color.a + LeaveColor.a
+     if color.r>1{
+      color.r=1
+     }
+      if color.g>1{
+      color.g=1
+     }
+      if color.b>1{
+      color.b=1
+     }
+
+   return color
+}
+
+func Jousann(color vec4,baseColor vec4)(newcolor vec4){
+   // color.r=(color.r*baseColor.r)
+   // color.g=(color.g*baseColor.g)
+   // color.b=(color.b*baseColor.b)
+   //  color.a=(color.a*baseColor.a)
+ color.rgba=(color.rgba*baseColor.rgba)
+   
+ 
+   
+
+   return color
+}

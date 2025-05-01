@@ -1,0 +1,18 @@
+package main
+
+
+var FillColor  vec4
+// var LightColor vec4
+
+func Fragment(_ vec4, texCoord vec2, _ vec4) vec4 {
+	 color := imageSrc0UnsafeAt(texCoord)
+    defa:=color.a
+    if defa>0{
+        color.rgb = FillColor.rgb
+    }
+    color.a = defa
+
+
+    return color//mix(DarkColor, LightColor, light)
+}
+

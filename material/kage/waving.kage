@@ -1,0 +1,30 @@
+//kage:unit pixels
+package main
+
+var Vertical int//1:縦
+var Size float
+var Narrow float
+var Phase float
+
+func Fragment(_ vec4, texCoord vec2, _ vec4) vec4 {
+    var high float
+    var going float
+    var shifting vec2
+    if Vertical==1 {
+        going = texCoord.x
+        high = texCoord.y
+        high += Size*sin((Narrow*going)-Phase)
+        shifting=vec2(going,high)
+    } else {
+        going = texCoord.y
+        high = texCoord.x
+        high += Size*sin((Narrow*going)-Phase)
+        shifting=vec2(high,going)
+    }
+
+
+	color := imageSrc0UnsafeAt(shifting)
+
+    return color//mix(DarkColor, LightColor, light)
+}
+

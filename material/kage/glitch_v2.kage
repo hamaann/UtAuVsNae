@@ -1,0 +1,130 @@
+//kage:unit pixels
+package main
+
+
+var Seed float
+var ShiftMax float
+var High int
+
+var Distance float
+var Pattern int
+
+// var LightColor vec4
+
+func Fragment(_ vec4, texCoord vec2, _ vec4) vec4 {
+    var shiftX float
+    var keepY int
+    var seedY float
+    var sft vec2
+   
+    keepY = int(texCoord.y)/High
+    rimg:= imageSrc1At(vec2(0,float(keepY)))
+    seedY = float(keepY)*(200*Seed)+(rimg.r+rimg.g+rimg.b)*200
+    keepY=int(texCoord.y)/int(abs(gliRand(seedY,float(High))))
+  
+    // rimg:= imageSrc1At(vec2(texCoord.x,float(keepY)))
+    seedY = float(keepY)*(100*Seed)+(rimg.r+rimg.g+rimg.b)*100
+//    shiftX = texCoord.x+(ShiftMax*sin(float(seedY)*cos(float(seedY*seedY))))
+    // shiftX = texCoord.x+kameRandv2((Seed+123123)*float(seedY)*1000,ShiftMax*2)-ShiftMax
+    shiftX = texCoord.x+gliRand(seedY,ShiftMax)
+    // texCoord.x=shiftX
+    sft=vec2(shiftX,texCoord.y)
+	color := Aberr(sft)
+//     pl:=texCoord
+//     defa:=color.a
+//    f:=100.0
+//    pl2:=mod(pl,f)
+//     if defa>0{
+//         rd:=kameRand(Seed*(pl2.x*pl2.y)+1,100)/100//
+//         color.rgb=vec3(rd,rd,rd)
+//     }
+//     color.a = defa
+
+
+    return color//mix(DarkColor, LightColor, light)
+}
+
+func gliRand(seed float,mx float)float{
+   // rimg:= imageSrc1At(texCoord+seed)
+   // seed=seed//+(rimg.r+rimg.g+rimg.b)*10
+    return mx*sin(float(seed)*cos(float(seed*seed)))
+}
+
+func kameRandv2(seed float,mx float)float{
+    if mx<=0{
+        return 0
+    }
+    seed=mod(seed,1500500)
+    // seed=mod(seed,1500500)
+    x100:=seed//100*seed-15
+    ssin:=sin(x100*x100)
+    mmod:=mod((x100-0.1)*(x100-0.1),10)
+   // mx:=100.0
+   // fseed:=float(seed)
+   inn:=(ssin*ssin*mmod/10)-0.5
+    return 2*mx*abs(inn)
+}
+
+func kameRand(seed float,mx float)float{
+    if mx<=0{
+        return 0
+    }
+    n:=100.0
+   // mx:=100.0
+   // fseed:=float(seed)
+
+    return float(randmode(seed*seed*n,mx)+randmode(float(n+n/2)*pow(seed, sin(2.0*seed-5)),mx))
+}
+
+
+
+func randmode(nx float,m float)float{
+    return mod(10000000*nx,m/2)
+}
+
+
+
+func Aberr( texCoord vec2) vec4 {
+   texCoord2:=vec2(texCoord.x+Distance,texCoord.y)
+   texCoord0:=vec2(texCoord.x-Distance,texCoord.y)
+   if Pattern==012{
+        return LeaveCMYandMultiply(texCoord0,texCoord,texCoord2)
+   }
+
+    if Pattern==021{
+        return LeaveCMYandMultiply(texCoord0,texCoord2,texCoord)
+   }
+
+     if Pattern==102{
+        return LeaveCMYandMultiply(texCoord,texCoord0,texCoord2)
+   }
+
+    if Pattern==120{
+        return LeaveCMYandMultiply(texCoord,texCoord2,texCoord0)
+   }
+
+     if Pattern==201{
+        return LeaveCMYandMultiply(texCoord2,texCoord0,texCoord)
+   }
+
+    if Pattern==210{
+        return LeaveCMYandMultiply(texCoord2,texCoord,texCoord0)
+   }
+
+    return LeaveCMYandMultiply(texCoord0,texCoord,texCoord2)//color//mix(DarkColor, LightColor, light)
+}
+
+func LeaveCMYandMultiply(posC vec2,posM vec2,posY vec2)vec4{
+    cyaan:=Leave(imageSrc0At(posC),vec3(0,1,1))
+    magenta:=Leave(imageSrc0At(posM),vec3(1,0,1))
+    yellow:=Leave(imageSrc0At(posY),vec3(1,1,0))
+    return cyaan*magenta*yellow
+}
+
+
+func Leave(color vec4,LeaveColor vec3)(newcolor vec4){
+   color.r = min(color.r + LeaveColor.r,1)
+   color.g = min(color.g + LeaveColor.g,1)
+   color.b = min(color.b + LeaveColor.b,1)
+   return color
+}

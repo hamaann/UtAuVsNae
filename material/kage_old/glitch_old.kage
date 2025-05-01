@@ -1,0 +1,48 @@
+//kage:unit pixels
+package main
+
+
+var Seed float
+var ShiftMax float
+// var LightColor vec4
+
+func Fragment(_ vec4, texCoord vec2, _ vec4) vec4 {
+    var shiftX float
+    var keepY float
+    var seedY int
+    var sft vec2
+    keepY = texCoord.y
+    seedY = int(keepY/50)
+    shiftX = texCoord.x
+    shiftX += float(seedY)*10//(kameRand((Seed+1)*float(seedY+1)*1000,ShiftMax*2)+1)-ShiftMax
+    // texCoord.x=shiftX
+    sft=vec2(shiftX,keepY)
+	color := imageSrc0UnsafeAt(sft)
+//     pl:=texCoord
+//     defa:=color.a
+//    f:=100.0
+//    pl2:=mod(pl,f)
+//     if defa>0{
+//         rd:=kameRand(Seed*(pl2.x*pl2.y)+1,100)/100//
+//         color.rgb=vec3(rd,rd,rd)
+//     }
+//     color.a = defa
+
+
+    return color//mix(DarkColor, LightColor, light)
+}
+
+func kameRand(seed float,mx float)float{
+    if mx<=0{
+        return 0
+    }
+    n:=100.0
+   // mx:=100.0
+   // fseed:=float(seed)
+
+    return float(randmode(seed*seed*n,mx)+randmode(float(n+n/2)*pow(seed, sin(2.0*seed-5)),mx))
+}
+
+func randmode(nx float,m float)float{
+    return mod(10000000*nx,m/2)
+}
