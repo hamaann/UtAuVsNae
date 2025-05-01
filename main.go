@@ -54,9 +54,9 @@ func (g *Game) Update() error {
 		room = loading
 		g.playerName = "？"
 	case loading:
-		// if load.LoadedSystem(GameX, GameY) {
-		// 	room = cushion
-		// }
+		if load.LoadedSystem(GameX, GameY) {
+			room = cushion
+		}
 	case cushion:
 		// if keyinp.KboolJstMany(keyinp.Kok1, keyinp.Kok2) {
 		if keylib.JstInpKey(keylib.Decide, &keylib.DecideJst) {
