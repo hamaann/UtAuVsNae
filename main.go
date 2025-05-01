@@ -54,7 +54,7 @@ func (g *Game) Update() error {
 		room = loading
 		g.playerName = "？"
 	case loading:
-		if load.LoadedSystem(GameX, GameY) {
+		if load.LoadedSystem(GameX, GameY) {//消してた、この後消していいかも
 			room = cushion
 		}
 	case cushion:
