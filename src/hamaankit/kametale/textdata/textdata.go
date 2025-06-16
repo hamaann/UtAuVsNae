@@ -94,7 +94,8 @@ func loadUttexts(sc *bufio.Scanner, list *map[string][]*Uttxt, returnNum int) {
 				RollingType: rltp,
 			}
 			if returnNum > 0 {
-				t.TextShiftUtBox(returnNum)
+				t.TextAutoLine(returnNum)
+				// t.TextShiftUtBox(returnNum)
 			}
 
 			(*list)[listname] = append((*list)[listname], t)
@@ -108,49 +109,93 @@ func IsMode(rolltype int, typeName string) bool {
 	return RollingTypeName(typeName) == rolltype
 }
 
-func (txt *Uttxt) TextShiftUtBox(retNumText int) {
+func (txt *Uttxt) TextAutoLine(alineNum int) {
+	looked := 0
+	beforsp := 0
 	rn := []rune(txt.Text)
-	if len(rn) < retNumText {
+	if len(rn) < alineNum {
 		return
 	}
-	sp := make([]int, 0)
-	sk := make([]int, 0)
-	rn = append(rn, ' ')
-	for i := range rn {
+
+	// fmt.Printf("spacedData>>")
+	for i := 0; i < len(rn); i++ {
 		if rn[i] == ' ' || rn[i] == '　' {
-			sp = append(sp, i)
+			if i-looked < alineNum {
+				beforsp = i
+				// fmt.Printf("%d ", i)
+			} else {
+				i = beforsp
+				rn[i] = '\n'
+				looked = i
+				// fmt.Printf("<%d> ", i)
+			}
 		}
 
 		if rn[i] == '\n' {
-			sk = append(sk, i)
+			looked = i
 		}
-	}
 
-	looked := 0
-	added := 0
-	skipCount := 0
-	for j := range sp {
-		if len(sk) > skipCount {
-			if sp[j]+1 > sk[skipCount] {
-				skipCount++
-				looked = sp[j] + 1
+		if !(i+1 < len(rn)) {
+			if !(i-looked < alineNum) {
+				i = beforsp
+				rn[i] = '\n'
+				looked = i
+				// fmt.Printf("{%d} ", i)
 			}
-		}
-		if sp[j]+1+added-looked >= retNumText {
-			j--
-
-			subrn := []rune{'\n'}
-			subrn = append(subrn, rn[sp[j]+1+added-looked:]...)
-			rn = append(rn[:sp[j]+1+added-looked], subrn...)
-			looked = sp[j] + 1
-			added++
-
 		}
 	}
 
 	txt.Text = string(rn)
-	return
+	// fmt.Println("\n", txt.Text)
 }
+
+// func (txt *Uttxt) TextShiftUtBox(retNumText int) {
+// 	rn := []rune(txt.Text)
+// 	if len(rn) < retNumText {
+// 		return
+// 	}
+// 	sp := make([]int, 0)
+// 	sk := make([]int, 0)
+// 	rn = append(rn, ' ')
+// 	for i := range rn {
+// 		if rn[i] == ' ' || rn[i] == '　' {
+// 			sp = append(sp, i)
+// 		}
+
+// 		if rn[i] == '\n' {
+// 			sk = append(sk, i)
+// 		}
+// 	}
+
+// 	looked := 0
+// 	added := 0
+// 	skipCount := 0
+// 	fmt.Println("[txt]>>>", txt.Text, sp, sk)
+// 	for j := range sp {
+// 		if len(sk) > skipCount {
+// 			if sp[j] > sk[skipCount] {
+// 				skipCount++
+// 				looked = sp[j] + 1
+// 			}
+// 		}
+// 		if sp[j]+added-looked > retNumText {
+// 			j--
+// 			fmt.Println("	>", sp[j+1], looked, "::", "!", string(rn[:sp[j+1]+added-looked]), sp[j+1]+added-looked)
+// 			subrn := []rune{'\n'}
+// 			subrn = append(subrn, rn[sp[j]+1+added-looked:]...)
+// 			rn = append(rn[:sp[j]+1+added-looked], subrn...)
+// 			looked = sp[j] + 1
+// 			j++
+// 			// j--
+// 			// added++
+
+// 		}
+// 	}
+
+// 	txt.Text = string(rn)
+// 	fmt.Println("[txt:shifted]>>>", txt.Text, added, looked)
+// 	return
+// }
 
 // func loadStrings(sc *bufio.Scanner, li()st *[]string) {
 // 	// unicode.IsSpace(',')
