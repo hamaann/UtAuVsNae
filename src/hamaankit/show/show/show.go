@@ -31,7 +31,7 @@ func LoadImage(PicPointer **ebiten.Image, Path string) {
 	var imgLoaderr error
 	*PicPointer, _, imgLoaderr = ebitenutil.NewImageFromFile(Path)
 	if imgLoaderr != nil {
-		log.Fatal(imgLoaderr)
+		log.Fatal("about:", Path, "\n", imgLoaderr)
 	}
 }
 

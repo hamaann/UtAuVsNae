@@ -2,12 +2,13 @@ package load
 
 const (
 	InRooms = iota
-	InFontlib
+	// InFontlib
 	InOutward
 	InMenuUT
 	InBarrages
 	InGeno
 	InBattle
+	InEncount
 
 	AllInitalP
 )
@@ -21,6 +22,7 @@ func LoadedSystem(gx, gy float64) bool {
 		return true
 	}
 
+	// fmt.Println(nowLoading)
 	InitalPro[nowLoading](gx, gy)
 	// time.Sleep(time.Second)
 	nowLoading++

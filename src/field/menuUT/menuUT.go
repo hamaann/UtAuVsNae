@@ -10,6 +10,7 @@ import (
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/show/show"
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/system/hmutil"
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/system/sound"
+	"github.com/hamaa/UtAuVsNae/src/item"
 	"github.com/hamaa/UtAuVsNae/src/keylib"
 	"github.com/hamaa/UtAuVsNae/src/load"
 )
@@ -89,7 +90,7 @@ func MenuControl(cantMove *bool) {
 					if !itemLookOn {
 						dw := keylib.JustDir(hmutil.DOWN)
 						up := keylib.JustDir(hmutil.UP)
-						if hmutil.MenuSelecter(dw, up, &itemLook, 0, items.HowItems(), 1) {
+						if hmutil.MenuSelecter(dw, up, &itemLook, 0, item.HowItems(), 1) {
 							//sound
 							sound.PlaySE(SeSelMen, "wav")
 						}
@@ -167,8 +168,8 @@ func MenuLook(screen *ebiten.Image, Name string, LOVE, HP, HPmax, Gold int) {
 func ViewItems(screen *ebiten.Image) {
 	// fmt.Println(items.ItemList)
 	dyEn := ktui.LtuningEng(7)
-	for it := 0; it < items.HowItems(); it++ {
-		nm := items.ItemName(items.ItemList[it])
+	for it := 0; it < item.HowItems(); it++ {
+		nm := item.AllItemSet[it] //item.ItemName(items.ItemList[it])
 		show.PrintShowOrg(screen, nm.Name, fontlib.InBoxFont, 31+143+17+60, 55+18*2*float64(it+1)+dyEn, 1)
 		// fmt.Println(">>", nm.Name)
 	}

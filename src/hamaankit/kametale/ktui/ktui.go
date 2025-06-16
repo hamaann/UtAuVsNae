@@ -157,6 +157,7 @@ func UtSerifBox(screen *ebiten.Image, x float64, y float64, wide bool, serif str
 
 func UTstdText(screen *ebiten.Image, dx, dy float64, txmess string, ast [3]bool) {
 	// textboxFont := fontlib.InBoxFont[fontlib.Lang] //Font.BoxMess[lang]
+
 	for i := 0; i < 3; i++ {
 		if ast[i] {
 			// Image.PrintDep(screen, Image.StdOpTx(), "＊", textboxFont, 30+20, 250+20+float64(26*1.5*i), 0)

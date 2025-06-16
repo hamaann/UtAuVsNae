@@ -2,6 +2,7 @@ package avatar
 
 import (
 	//hamaankit/show/
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/show/show"
 )
@@ -17,6 +18,8 @@ type Integrity int
 
 var cameheight float64
 
+const DefHighCam = 480 * (25.0 / 480.0)
+
 var DrawTop func(screen *ebiten.Image, gx, gy float64)
 
 func AvaterWorld(screen *ebiten.Image, drawWorld func(order Integrity, screen *ebiten.Image)) {
@@ -24,6 +27,7 @@ func AvaterWorld(screen *ebiten.Image, drawWorld func(order Integrity, screen *e
 
 	for j_y := ScreenMin(); j_y <= ScreenMax()+int(HighestObject); j_y++ {
 		drawWorld(Integrity(j_y), screen)
+
 	}
 
 	if DrawTop != nil {

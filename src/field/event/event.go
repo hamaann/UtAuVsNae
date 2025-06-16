@@ -2,9 +2,11 @@ package event
 
 import (
 	"github.com/hamaa/UtAuVsNae/src/field/menuUT"
+	"github.com/hamaa/UtAuVsNae/src/hamaankit/kametale/textdata"
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/system/hmutil"
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/system/nexting"
 	"github.com/hamaa/UtAuVsNae/src/keylib"
+	"github.com/hamaa/UtAuVsNae/src/stduttexts"
 )
 
 // func init() {
@@ -71,9 +73,12 @@ func ShiftRoomBox(mx, my *float64, nextRoom int, nowRoom *int, howLong int, outX
 		if nexting.Nexting[int](nowRoom, nextRoom, howLong, 0x000000, nil) {
 			go func(cm *bool) {
 
-				// for nexting.NowNexting() {
-				// 	// fmt.Println(roomshift.NowNexting())
-				// }
+				for !nexting.NextingFin() {
+					if *nowRoom == nextRoom {
+						*mx, *my = outX, outY
+					}
+					// fmt.Println(roomshift.NowNexting())
+				}
 				*cm = false
 			}(&cantMove)
 		}
@@ -82,18 +87,33 @@ func ShiftRoomBox(mx, my *float64, nextRoom int, nowRoom *int, howLong int, outX
 	}
 }
 
-func TalkingBox(mx, my *float64, mdir *int, speed float64, messnum int, x1, x2, y1, y2, add float64, defarFunc func()) (talking bool) {
+var talkDecideJst int
+
+func TalkingBox(mx, my *float64, mdir *int, speed float64, messnum int, x1, x2, y1, y2, add float64, roll []*textdata.Uttxt, talkWithChara bool, shiftingSign *bool, newSign bool) (talking bool) {
 	nowTalk := false
 	// debugeimaging.BebugMapCollingBox(float32(x1), float32(x2), float32(y1), float32(y2), float32(add), 0x00ffff)
 	// if dir == 0 { //mdir {
 	if t, d := InZoneDir(*mx, *my, x1, x2, y1, y2, add); t && !menuUT.GetMenuON() && d == *mdir {
 
-		if boxtloc.GoingMessage(messagedata.PushMessages(messnum), &cantMove) {
-			if defarFunc != nil {
-				defarFunc()
-			}
-			cantMove = false
+		// if boxtloc.GoingMessage(messagedata.PushMessages(messnum), &cantMove) {
+		if keylib.JstInpKey(keylib.Decide, &talkDecideJst) && !stduttexts.TextRollingNow {
+
+			cantMove = true
+			stduttexts.StartTextdata(roll, stduttexts.Boxt, 0, 0, talkWithChara, false)
+			go func(cm *bool, sgn *bool, newsgn bool) {
+				for stduttexts.TextRollingNow {
+
+				}
+				if sgn != nil {
+					*sgn = newsgn
+
+				}
+				*cm = false
+			}(&cantMove, shiftingSign, newSign)
+
 		}
+
+		// }
 		nowTalk = cantMove
 	}
 	// }
@@ -169,8 +189,10 @@ const (
 	EncStdSy = 453
 )
 
-func Encount(signal bool, soulx, souly float64) {
-	if signal {
+func Encount(signal *bool, soulx, souly float64) {
+	if *signal {
+		*signal = false
+
 		Encounting = true
 		goingX, goingY = soulx, souly
 		battleGoing = 0

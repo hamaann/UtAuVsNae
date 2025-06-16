@@ -8,17 +8,30 @@ import (
 	"strings"
 )
 
+func RollingTypeName(name string) int {
+	switch name {
+	case "ctrl":
+		return 0
+	case "auto":
+		return 1
+	case "auto_ctrl":
+		return 2
+	}
+	return 0
+}
+
 const defaultTextPerSpeed = 2
 
 type Uttxt struct {
 	Who         string
 	Text        string
 	RunePerTick int
+	RollingType int
 }
 
-func GetTextData(pathName string) (list *map[string][]*Uttxt) {
+func GetTextData(list *map[string][]*Uttxt, pathName string, returnNum int) {
 	// var list *[]string
-	var texts map[string][]*Uttxt
+	// var texts map[string][]*Uttxt
 	fp, err := os.Open(pathName)
 	if err != nil {
 		panic(err)
@@ -27,11 +40,12 @@ func GetTextData(pathName string) (list *map[string][]*Uttxt) {
 
 	scanner := bufio.NewScanner(fp)
 
-	loadUttexts(scanner, &texts)
-	return &texts
+	loadUttexts(scanner, list, returnNum) //&texts)
+
+	// return texts
 }
 
-func loadUttexts(sc *bufio.Scanner, list *map[string][]*Uttxt) {
+func loadUttexts(sc *bufio.Scanner, list *map[string][]*Uttxt, returnNum int) {
 	// unicode.IsSpace(',')
 	*list = make(map[string][]*Uttxt)
 	sc.Split(bufio.ScanLines)
@@ -46,8 +60,14 @@ func loadUttexts(sc *bufio.Scanner, list *map[string][]*Uttxt) {
 			(*list)[listname] = make([]*Uttxt, 0)
 		} else if !(t[0] == "" && t[1] == "") {
 			rpt := defaultTextPerSpeed
+			rltp := 0
 			if len(t) >= 3 {
-				rpt, _ = strconv.Atoi(t[2])
+				if t[2] != "" {
+					rpt, _ = strconv.Atoi(t[2])
+				}
+				if len(t) >= 4 {
+					rltp = RollingTypeName(t[3])
+				}
 
 			}
 
@@ -66,16 +86,73 @@ func loadUttexts(sc *bufio.Scanner, list *map[string][]*Uttxt) {
 				(*list)[listname][sz-1].Text = (*list)[listname][sz-1].Text + "\n" + t[1]
 				continue
 			}
-			(*list)[listname] = append((*list)[listname], &Uttxt{
+
+			t := &Uttxt{
 				Who:         t[0],
 				Text:        t[1],
 				RunePerTick: rpt,
-			})
+				RollingType: rltp,
+			}
+			if returnNum > 0 {
+				t.TextShiftUtBox(returnNum)
+			}
+
+			(*list)[listname] = append((*list)[listname], t)
+
 		}
 	}
+
 }
 
-// func loadStrings(sc *bufio.Scanner, list *[]string) {
+func IsMode(rolltype int, typeName string) bool {
+	return RollingTypeName(typeName) == rolltype
+}
+
+func (txt *Uttxt) TextShiftUtBox(retNumText int) {
+	rn := []rune(txt.Text)
+	if len(rn) < retNumText {
+		return
+	}
+	sp := make([]int, 0)
+	sk := make([]int, 0)
+	rn = append(rn, ' ')
+	for i := range rn {
+		if rn[i] == ' ' || rn[i] == '　' {
+			sp = append(sp, i)
+		}
+
+		if rn[i] == '\n' {
+			sk = append(sk, i)
+		}
+	}
+
+	looked := 0
+	added := 0
+	skipCount := 0
+	for j := range sp {
+		if len(sk) > skipCount {
+			if sp[j]+1 > sk[skipCount] {
+				skipCount++
+				looked = sp[j] + 1
+			}
+		}
+		if sp[j]+1+added-looked >= retNumText {
+			j--
+
+			subrn := []rune{'\n'}
+			subrn = append(subrn, rn[sp[j]+1+added-looked:]...)
+			rn = append(rn[:sp[j]+1+added-looked], subrn...)
+			looked = sp[j] + 1
+			added++
+
+		}
+	}
+
+	txt.Text = string(rn)
+	return
+}
+
+// func loadStrings(sc *bufio.Scanner, li()st *[]string) {
 // 	// unicode.IsSpace(',')
 // 	sc.Split(bufio.ScanLines)
 // 	*list = make([]string, 0)
@@ -89,4 +166,13 @@ func loadUttexts(sc *bufio.Scanner, list *map[string][]*Uttxt) {
 func removeUnwantedStrings(st *string) {
 	def, af, _ := strings.Cut(*st, string([]byte{239, 187, 191}))
 	*st = fmt.Sprintf("%s%s", def, af)
+}
+
+func NanUttxt() *Uttxt {
+	return &Uttxt{
+		Who:         "st",
+		Text:        "",
+		RunePerTick: 2,
+		RollingType: 0,
+	}
 }

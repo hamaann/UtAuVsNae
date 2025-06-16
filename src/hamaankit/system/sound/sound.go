@@ -151,6 +151,7 @@ var BattEm embed.FS
 func LoadSound(SoundPointer *SoundF, Path string) {
 	var SndLoaderr error
 
+	// fmt.Println(BattEm)
 	*SoundPointer, SndLoaderr = BattEm.ReadFile(Path)
 	if SndLoaderr != nil {
 		log.Fatal(SndLoaderr)

@@ -8,10 +8,12 @@ import (
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/system/sound"
 )
 
-var ItemStatusMessages = textdata.GetTextData("material/data/itemMess.csv")
+// var ItemStatusMessages = textdata.GetTextData("material/data/itemMess.csv")
+
+type ItemUT int
 
 const (
-	Nullitem = iota
+	Nullitem = ItemUT(iota)
 	Hotcake
 	BadMemory
 	Candy
@@ -21,40 +23,9 @@ const (
 	Allitems
 )
 
-func ItemName(item int) Itemthings {
-	// name := ""
+var itemList [8]ItemUT
 
-	switch item {
-	case Hotcake:
-		if ktui.LcheckEng() {
-			return Itemthings{"Pancake", "You ate the Pancake.", 100}
-		}
-		return Itemthings{"ホットケーキ", "ホットケーキを　たべた。", 100}
-	case BadMemory:
-		if ktui.LcheckEng() {
-			return Itemthings{"BadMemory", "You consume the Bad Memory.", -1}
-		}
-		return Itemthings{"いやなおもいで", "いやなおもいでを　のみこんだ。", -1}
-	case Candy: //MnstrCndy
-		if ktui.LcheckEng() {
-			return Itemthings{"MnstrCndy", "You ate the Monster Candy.", 10}
-		}
-		return Itemthings{"モンスターあめ", "モンスターあめを　たべた。", 10}
-	case IceBall:
-		if ktui.LcheckEng() {
-			return Itemthings{"SnowPiece", "You ate the Snowman Piece.", 45}
-		}
-		return Itemthings{"ゆきだるまのかけら", "ゆきだるまのかけらを　たべた。", 45}
-	case BSPai: //ButtsPie
-		if ktui.LcheckEng() {
-			return Itemthings{"ButtsPie", "You ate the Butterscotch Pie.", 1000}
-		}
-		return Itemthings{"バタースコッチパイ", "バタースコッチパイを　たべた。", 1000}
-	default:
-		return Itemthings{"", "", 0}
-	}
-
-}
+var AllItemSet [Allitems]*Itemthings
 
 var (
 	eating sound.SoundF
@@ -70,6 +41,28 @@ func InitItem() {
 	sound.LoadSound(&eating, "material/sounds/se/snd_swallow.wav")
 	sound.LoadSound(&Heal, "material/sounds/se/snd_heal_c.wav")
 	sound.LoadSound(&Hurt, "material/sounds/se/snd_hurt1_c.wav")
+	LoadItemsTxt()
+}
+
+func LoadItemsTxt() {
+	var itm map[string][]*textdata.Uttxt
+	textdata.GetTextData(&itm, "material/data/itemMess.csv", -1)
+
+	setAllItemSet(Hotcake, 100, "ホットケーキ", itm)
+	setAllItemSet(BadMemory, -1, "いやなおもいで", itm)
+	setAllItemSet(Candy, 10, "モンスターあめ", itm)
+	setAllItemSet(IceBall, 45, "ゆきだるまのかけら", itm)
+	setAllItemSet(BSPai, 10000, "バタースコッチパイ", itm)
+
+}
+
+func setAllItemSet(num ItemUT, healPower int, name string, list map[string][]*textdata.Uttxt) {
+
+	AllItemSet[num] = &Itemthings{
+		Name:  name,
+		Dotxt: (list)[name],
+		Heal:  healPower,
+	}
 }
 
 type Itemthings struct {
@@ -78,11 +71,10 @@ type Itemthings struct {
 	Heal  int
 }
 
-var itemList [8]int
-
-func ItemEffeHp(listnum int, Hp *int, HpMax int) (txt []*textdata.Uttxt, iname int) {
+func ItemEffeHp(listnum int, Hp *int, HpMax int) (txt []*textdata.Uttxt, iname ItemUT) {
 	itm := itemList[listnum]
-	food := ItemName(itm)
+	ItemEffeTxtInit(itm)
+	food := AllItemSet[itm]
 	hm := food.Heal
 	*Hp += hm
 	UseItem(listnum)
@@ -118,8 +110,26 @@ func ItemEffeHp(listnum int, Hp *int, HpMax int) (txt []*textdata.Uttxt, iname i
 	}
 
 	// turnInfo.Mestexts[turnInfo.ForItems[itm-1][ktui.Lang]] = (ItemName(itm).Dotxt + "\n" + abHP)
+	// food.Dotxt[0].Text=append((food.Dotxt[0].Text),byte('\n'))
 	food.Dotxt[0].Text = food.Dotxt[0].Text + "\n" + abHP
 	return food.Dotxt, itm
+}
+
+func ItemEffeTxtInit(itm ItemUT) {
+	// itm := itemList[listnum]
+	food := AllItemSet[itm]
+	// fmt.Println("first>>", food.Dotxt[0].Text)
+	rnTx := []rune(food.Dotxt[0].Text)
+	for i := range rnTx {
+		// fmt.Printf("%d %d ", rnTx[len(rnTx)-i-1], '\n')
+		// fmt.Println(rnTx[len(rnTx)-i-1] == '\n')
+		if rnTx[len(rnTx)-i-1] == '\n' {
+			// fmt.Println("del>>", rnTx[(len(rnTx)-i-1):])
+			rnTx = rnTx[:(len(rnTx) - i - 1)]
+			food.Dotxt[0].Text = string(rnTx)
+			return
+		}
+	}
 }
 
 func EatingSound(wavsn sound.SoundF) {
@@ -131,7 +141,11 @@ func EatingSound(wavsn sound.SoundF) {
 	}(pp, &wavsn)
 }
 
-func AddItem(item int) {
+func ItemKey(key int) (item ItemUT) {
+	return itemList[key]
+}
+
+func AddItem(item ItemUT) {
 	for i := range itemList {
 		if itemList[i] == Nullitem {
 			itemList[i] = item
@@ -163,3 +177,38 @@ func HowItems() int {
 	}
 	return len(itemList)
 }
+
+// func ItemName(item int) Itemthings {
+// 	// name := ""
+
+// 	switch item {
+// 	case Hotcake:
+// 		if ktui.LcheckEng() {
+// 			return Itemthings{"Pancake", "You ate the Pancake.", 100}
+// 		}
+// 		return Itemthings{"ホットケーキ", "ホットケーキを　たべた。", 100}
+// 	case BadMemory:
+// 		if ktui.LcheckEng() {
+// 			return Itemthings{"BadMemory", "You consume the Bad Memory.", -1}
+// 		}
+// 		return Itemthings{"いやなおもいで", "いやなおもいでを　のみこんだ。", -1}
+// 	case Candy: //MnstrCndy
+// 		if ktui.LcheckEng() {
+// 			return Itemthings{"MnstrCndy", "You ate the Monster Candy.", 10}
+// 		}
+// 		return Itemthings{"モンスターあめ", "モンスターあめを　たべた。", 10}
+// 	case IceBall:
+// 		if ktui.LcheckEng() {
+// 			return Itemthings{"SnowPiece", "You ate the Snowman Piece.", 45}
+// 		}
+// 		return Itemthings{"ゆきだるまのかけら", "ゆきだるまのかけらを　たべた。", 45}
+// 	case BSPai: //ButtsPie
+// 		if ktui.LcheckEng() {
+// 			return Itemthings{"ButtsPie", "You ate the Butterscotch Pie.", 1000}
+// 		}
+// 		return Itemthings{"バタースコッチパイ", "バタースコッチパイを　たべた。", 1000}
+// 	default:
+// 		return Itemthings{"", "", 0}
+// 	}
+
+// }

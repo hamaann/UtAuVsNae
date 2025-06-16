@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"image/png"
 	"log"
@@ -8,21 +9,39 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hamaa/UtAuVsNae/src/battle/battle"
+	battle "github.com/hamaa/UtAuVsNae/src/battle/battlev2"
+	"github.com/hamaa/UtAuVsNae/src/field/encount"
+	"github.com/hamaa/UtAuVsNae/src/field/event"
+	"github.com/hamaa/UtAuVsNae/src/field/fieldmove"
 	"github.com/hamaa/UtAuVsNae/src/field/rooms"
 	"github.com/hamaa/UtAuVsNae/src/fontlib"
+	"github.com/hamaa/UtAuVsNae/src/hamaankit/kametale/ktui"
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/show/avatar"
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/show/show"
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/show/show/showkage"
 	"github.com/hamaa/UtAuVsNae/src/hamaankit/system/nexting"
+	"github.com/hamaa/UtAuVsNae/src/hamaankit/system/sound"
 	"github.com/hamaa/UtAuVsNae/src/keylib"
 	"github.com/hamaa/UtAuVsNae/src/load"
+	"github.com/hamaa/UtAuVsNae/src/stduttexts"
+	// "golang.org/x/image/font"
 )
 
 const DoubleSize = 1 //Image.DoubleSize
 const DebugMode = !true
 
 var QRtomove *ebiten.Image
+
+//go:embed material/*
+var SeDir embed.FS
+
+func init() {
+	sound.BattEm = SeDir
+	// fmt.Println(SeDir)
+	fontlib.SetFonts(ktui.Jap, ktui.Jap, ktui.Eng)
+	avatar.AvaterScreenSize(GameX, GameY)
+	ktui.Setting(ktui.Jap, fontlib.InBoxFont, fontlib.InTermFont, fontlib.EnglishAsteFont)
+}
 
 const (
 	GameX = 640
@@ -49,28 +68,37 @@ type Game struct {
 func (g *Game) Update() error {
 	keylib.LibAllKeyCheck()
 
+	decide, cansel := keylib.JstInpKey(keylib.Decide, &keylib.DecideJst), keylib.JstInpKey(keylib.Cancel, &keylib.CancelJst)
 	switch room {
 	case first:
 		room = loading
 		g.playerName = "？"
 	case loading:
-		// if load.LoadedSystem(GameX, GameY) {
-		// 	room = cushion
-		// }
+		if load.LoadedSystem(GameX, GameY) {
+			room = cushion
+
+		}
 	case cushion:
 		// if keyinp.KboolJstMany(keyinp.Kok1, keyinp.Kok2) {
-		if keylib.JstInpKey(keylib.Decide, &keylib.DecideJst) {
+		if decide {
 			room = field //startfighting
+			g.nowRoomNumber = 0
 
 		}
 	case field:
 		// location.UpdateWorld()
+		fieldmove.Location(&g.nowRoomNumber)
+		// avatar.CameraSet(fieldmove.MyX, fieldmove.MyY, avatar.DefHighCam)
+
 	case startfighting:
 		battle.BTinit(g.playerName)
 		room = fighting
 	case fighting:
-		battle.BttUpdate(GameX, GameY)
+		// battle.BttUpdate(GameX, GameY)
+		battle.RunPhase()
 	}
+
+	stduttexts.Control(decide, cansel)
 
 	return nil
 }
@@ -90,13 +118,23 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		show.PrintShowOrg(screen, "zを押してスタート\n\n<ミッション>\nてるてる坊主みたいな子に話しかけてください。\n「これはエラー」と出てきたらクリア\n操作方法はほぼ↓に準拠", fontlib.InBoxFont, 0, 0, 40)
 		show.ShowImgStd(screen, QRtomove, 1, 200, GameY-100, 0, false, 1, 1, 1)
 	case field:
+
 		avatar.AvaterWorld(screen, rooms.RoomView[g.nowRoomNumber])
+
+		if event.Encounting {
+			mx, my := fieldmove.MyFieldPlace()
+			encount.EncountingWorld(screen, mx, my, &room, startfighting)
+		}
+
 	case startfighting:
 	case fighting:
 		// Image.BoxDepictStd(onscreen, 0, GameX, 0, GameY, true, 1, 0x000000) //黒背景
 		show.ShowPathStd(onscreen, show.BoxPath(0, GameX, 0, GameY), true, 1, 0x000000, 1, false)
-		battle.BttDraw(onscreen, GameX, GameY)
+		// battle.BttDraw(onscreen, GameX, GameY)
+		battle.BattleView(onscreen, GameX, GameY)
 	}
+
+	stduttexts.PrintUt(screen)
 
 	ycic++
 
@@ -118,12 +156,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("-debugMode-\n%f\n%f", ebiten.ActualFPS(), ebiten.CurrentFPS()))
 	}
 }
+
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return 640, 480
 }
 
 func main() {
-
+	// fmt.Println([]int{1, 2, 3, 4, 5, 6, 7, 8, 9}[:3])
 	var im *ebiten.Image
 	show.LoadImage(&im, "material/img/rand.png")
 	// showkage.LoadAllKage(im, &kageproTrFill, &kageproNoiFill, &kageproTest, &kageproWave, &kageproGlitch, &kageproGrad, &kageproAbr)
@@ -140,7 +179,7 @@ func main() {
 		// debugeimaging.DebugModeON()
 	}
 	g := &Game{}
-	g.nowRoomNumber = first
+	g.nowRoomNumber = 0
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
